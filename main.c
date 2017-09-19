@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/fsuid.h>
 #include <grp.h>
 #include <unistd.h>
 
@@ -11,6 +12,12 @@ void addgroup (gid_t group_to_add) {
     getgroups (num_groups, list + 1);
     list[0] = group_to_add;
     setgroups (num_groups + 1, list);
+}
+
+void drop_sudo () {
+    uid_t uid = getuid();
+    seteuid (uid);
+    setfsuid (uid);
 }
 
 void exec_pass_args (char *file, int argc, char **argv) {
@@ -27,6 +34,8 @@ int main (int argc, char *argv[]) {
 
     // Add input to our groups.
     addgroup (106);
+
+    drop_sudo();
 
     // Exec Fusuma passing though command line args.
     exec_pass_args ("fusuma", argc, argv);
