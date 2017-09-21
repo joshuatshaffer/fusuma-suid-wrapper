@@ -1,18 +1,18 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/fsuid.h>
-#include <grp.h>
 #include <errno.h>
+#include <grp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/fsuid.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 gid_t get_gid (char *name) {
     errno = 0;
-    struct group *ginfo = getgrnam(name);
+    struct group *ginfo = getgrnam (name);
     if (ginfo == NULL) {
         if (errno == 0) {
-            fprintf(stderr, "The group \"%s\" could not be found.\n", name);
+            fprintf (stderr, "The group \"%s\" could not be found.\n", name);
             exit (1);
         } else {
             perror ("Could not get group info");
@@ -23,21 +23,21 @@ gid_t get_gid (char *name) {
 
 void join_group (gid_t group_to_add) {
     int num_groups = getgroups (0, NULL);
-    gid_t *list = calloc (num_groups + 1, sizeof(gid_t));
+    gid_t *list = calloc (num_groups + 1, sizeof (gid_t));
     getgroups (num_groups, list + 1);
     list[0] = group_to_add;
     setgroups (num_groups + 1, list);
 }
 
 void drop_sudo () {
-    uid_t uid = getuid();
+    uid_t uid = getuid ();
     seteuid (uid);
 }
 
 void exec_pass_args (char *file, int argc, char **argv) {
     // Make a copy of argv including the NULL terminator.
-    char **argv_new = calloc (argc + 1, sizeof(char**)); 
-    memcpy (argv_new, argv, (argc + 1) * sizeof(char**));
+    char **argv_new = calloc (argc + 1, sizeof (char **));
+    memcpy (argv_new, argv, (argc + 1) * sizeof (char **));
     // Set the program name arg.
     argv_new[0] = file;
     execvp (file, argv_new);
@@ -54,7 +54,7 @@ int main (int argc, char *argv[]) {
     // This in needed to fix "Insecure operation - spawn (SecurityError)"
     // which was being thrown by read_libinput in fusuma.
     // I don't know why this is needed.
-    drop_sudo();
+    drop_sudo ();
 
     // Exec Fusuma passing though command line args.
     exec_pass_args ("fusuma", argc, argv);
