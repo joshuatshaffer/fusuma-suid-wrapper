@@ -26,6 +26,11 @@ fusuma-s [-v | --verbose] [-c | --config=<path>]
 ```
 All command arguments are passed straight through to Fusuma. This wrapper takes no arguments it self.
 
+Customization
+-------------
+
+This program can be easily customized to work for different programs and different groups. To learn more see [my tutorial on the matter](http://joshuatshaffer.com/suid-and-setgroups/).
+
 License
 -------
 
