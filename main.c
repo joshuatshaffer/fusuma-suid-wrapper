@@ -11,11 +11,12 @@ gid_t get_gid (char *name) {
     if (group_info == NULL) {
         if (errno == 0) {
             fprintf (stderr, "The group \"%s\" could not be found.\n", name);
-            exit (1);
         } else {
             perror ("Could not get group info");
         }
+        exit (1);
     }
+    // The return value of getgrnam (group_info) should not be freed.
     return group_info->gr_gid;
 }
 
@@ -29,8 +30,17 @@ void join_group (gid_t group_to_add) {
     groups[0] = group_to_add;
 
     setgroups (num_groups + 1, groups);
+    if (errno != 0) {
+        perror ("Could not join group");
+        exit (1);
+    }
+    free (groups);
 }
 
+/**
+ * Drop "sudo" privileges by setting this process's effective user id to its
+ * real user id.
+ */
 void drop_sudo () {
     uid_t uid = getuid ();
     seteuid (uid);
@@ -46,6 +56,7 @@ void exec_pass_args (char *file, int argc, char **argv) {
 
     execvp (file, argv_new);
     perror ("execvp returned");
+    exit (1);
 }
 
 int main (int argc, char *argv[]) {
@@ -53,7 +64,7 @@ int main (int argc, char *argv[]) {
     gid_t input_gid = get_gid ("input");
     join_group (input_gid);
 
-    // Drop sudo privaleges.
+    // Drop sudo privileges.
     // They are no longer needed and should not be passed on to fusuma.
     drop_sudo ();
 
